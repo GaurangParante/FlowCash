@@ -1,42 +1,68 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Platform} from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import {useExpenses} from '../store/ExpenseContext';
-import {parseSmartInput} from '../utils/parseInput';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import CategoryPicker from '../components/CategoryPicker';
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, Button, StyleSheet } from "react-native";
+import { useExpenses } from "../store/ExpenseContext";
+import { parseSmartInput } from "../utils/parseInput";
+import CategoryPicker from "../components/CategoryPicker";
 
-const AddExpenseScreen = ({navigation}) => {
-  const {categories, addExpense, loadCategories} = useExpenses();
-  const [amount, setAmount] = useState('');
+const formatDateInput = (value) => value.toISOString().slice(0, 10);
+
+const AddExpenseScreen = ({ navigation }) => {
+  const { categories, addExpense } = useExpenses();
+  const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState(null);
-  const [note, setNote] = useState('');
-  const [date, setDate] = useState(new Date());
-  const [showPicker, setShowPicker] = useState(false);
+  const [note, setNote] = useState("");
+  const [dateInput, setDateInput] = useState(formatDateInput(new Date()));
 
   useEffect(() => {
-    if (categories && categories.length > 0 && !categoryId) setCategoryId(categories[0].id);
-  }, [categories]);
+    if (categories.length > 0 && !categoryId) {
+      setCategoryId(categories[0].id);
+    }
+  }, [categories, categoryId]);
 
   const onChangeSmart = (text) => {
     setNote(text);
     const parsed = parseSmartInput(text);
-    if (parsed.amount) setAmount(parsed.amount.toString());
+
+    if (parsed.amount) {
+      setAmount(parsed.amount.toString());
+    }
+
     if (parsed.remainder && !categoryId) {
-      // attempt to match category name heuristically
-      const rem = parsed.remainder.toLowerCase();
-      const found = categories.find(c => rem.includes(c.name.toLowerCase()));
-      if (found) setCategoryId(found.id);
+      const remainder = parsed.remainder.toLowerCase();
+      const found = categories.find((category) =>
+        remainder.includes(category.name.toLowerCase())
+      );
+
+      if (found) {
+        setCategoryId(found.id);
+      }
     }
   };
 
   const onSave = async () => {
-    const amt = parseFloat(amount);
-    if (!amt || isNaN(amt)) {
-      alert('Please enter a valid amount');
+    const parsedAmount = parseFloat(amount);
+    if (!parsedAmount || Number.isNaN(parsedAmount)) {
+      alert("Please enter a valid amount");
       return;
     }
-    await addExpense({amount: amt, category_id: categoryId, note, date: new Date(date).toISOString()});
+
+    if (!categoryId) {
+      alert("Please choose a category");
+      return;
+    }
+
+    const parsedDate = new Date(`${dateInput}T00:00:00`);
+    if (Number.isNaN(parsedDate.getTime())) {
+      alert("Please enter a valid date in YYYY-MM-DD format");
+      return;
+    }
+
+    await addExpense({
+      amount: parsedAmount,
+      category_id: categoryId,
+      note,
+      date: parsedDate.toISOString(),
+    });
     navigation.goBack();
   };
 
@@ -46,13 +72,17 @@ const AddExpenseScreen = ({navigation}) => {
       <TextInput
         value={amount}
         onChangeText={setAmount}
-        keyboardType="numeric"
+        keyboardType="decimal-pad"
         placeholder="0.00"
         style={styles.input}
       />
 
       <Text style={styles.label}>Category</Text>
-      <CategoryPicker categories={categories} selectedId={categoryId} onSelect={setCategoryId} />
+      <CategoryPicker
+        categories={categories}
+        selectedId={categoryId}
+        onSelect={setCategoryId}
+      />
 
       <Text style={styles.label}>Note / Smart Input</Text>
       <TextInput
@@ -63,14 +93,17 @@ const AddExpenseScreen = ({navigation}) => {
       />
 
       <Text style={styles.label}>Date</Text>
-      <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.input}>
-        <Text>{date.toDateString()}</Text>
-      </TouchableOpacity>
-      {showPicker && (
-        <DateTimePicker value={date} mode="date" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={(e, d) => {setShowPicker(false); if (d) setDate(d);}} />
-      )}
+      <TextInput
+        value={dateInput}
+        onChangeText={(text) => {
+          setDateInput(text);
+        }}
+        placeholder="YYYY-MM-DD"
+        autoCapitalize="none"
+        style={styles.input}
+      />
 
-      <View style={{marginTop:20}}>
+      <View style={styles.buttonWrap}>
         <Button title="Save" onPress={onSave} />
       </View>
     </View>
@@ -78,13 +111,25 @@ const AddExpenseScreen = ({navigation}) => {
 };
 
 const styles = StyleSheet.create({
-  container: {flex:1, padding:16, backgroundColor:'#fff'},
-  label:{fontWeight:'600', marginTop:12},
-  input:{borderWidth:1, borderColor:'#ddd', padding:12, borderRadius:8, marginTop:6},
-  pickerRow:{flexDirection:'row', flexWrap:'wrap', marginTop:8},
-  catBtn:{flexDirection:'row', alignItems:'center', padding:8, marginRight:8, borderWidth:1, borderColor:'#eee', borderRadius:8},
-  catText:{marginLeft:6},
-  catBtnActive:{backgroundColor:'#eef', borderColor:'#99f'}
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#fff",
+  },
+  label: {
+    fontWeight: "600",
+    marginTop: 12,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 6,
+  },
+  buttonWrap: {
+    marginTop: 20,
+  },
 });
 
 export default AddExpenseScreen;

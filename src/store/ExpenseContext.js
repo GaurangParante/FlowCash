@@ -1,9 +1,25 @@
-import React, {createContext, useContext, useEffect, useState, useCallback} from 'react';
-import {getCategories, getExpenses, addExpense as dbAddExpense, exportExpensesCSV, updateCategory, deleteCategory, getCategoryTotals, getWeeklyTotals, getSpendingComparison} from '../database/db';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+import {
+  getCategories,
+  getExpenses,
+  addExpense as dbAddExpense,
+  exportExpensesCSV,
+  updateCategory,
+  deleteCategory,
+  getCategoryTotals,
+  getWeeklyTotals,
+  getSpendingComparison,
+} from "../database/db";
 
 const ExpenseContext = createContext();
 
-export const ExpenseProvider = ({children}) => {
+export const ExpenseProvider = ({ children }) => {
   const [categories, setCategories] = useState([]);
   const [expenses, setExpenses] = useState([]);
 
@@ -22,17 +38,20 @@ export const ExpenseProvider = ({children}) => {
     loadExpenses();
   }, [loadCategories, loadExpenses]);
 
-  const addExpense = async payload => {
+  const addExpense = async (payload) => {
     const id = await dbAddExpense(payload);
     await loadExpenses();
     return id;
   };
 
-  const createCategory = async ({name, icon}) => {
-    const dbModule = require('../database/db');
+  const createCategory = async ({ name, icon }) => {
+    const dbModule = require("../database/db");
     const db = await dbModule.initDB();
     const now = new Date().toISOString();
-    await db.executeSql('INSERT INTO categories (name, icon, created_at) VALUES (?, ?, ?)', [name, icon||'shape', now]);
+    await db.executeSql(
+      "INSERT INTO categories (name, icon, created_at) VALUES (?, ?, ?)",
+      [name, icon || "shape", now]
+    );
     await loadCategories();
   };
 
@@ -41,7 +60,7 @@ export const ExpenseProvider = ({children}) => {
     await loadCategories();
   };
 
-  const removeCategory = async id => {
+  const removeCategory = async (id) => {
     await deleteCategory(id);
     await loadCategories();
     await loadExpenses();
@@ -55,11 +74,24 @@ export const ExpenseProvider = ({children}) => {
     const categoryTotals = await getCategoryTotals();
     const weekly = await getWeeklyTotals();
     const comparison = await getSpendingComparison();
-    return {categoryTotals, weekly, comparison};
+    return { categoryTotals, weekly, comparison };
   };
 
   return (
-    <ExpenseContext.Provider value={{categories, expenses, loadCategories, loadExpenses, addExpense}}>
+    <ExpenseContext.Provider
+      value={{
+        categories,
+        expenses,
+        loadCategories,
+        loadExpenses,
+        addExpense,
+        createCategory,
+        editCategory,
+        removeCategory,
+        exportCSV,
+        getInsights,
+      }}
+    >
       {children}
     </ExpenseContext.Provider>
   );
