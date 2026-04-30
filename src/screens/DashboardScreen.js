@@ -1,64 +1,34 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Text, StyleSheet, ScrollView, Dimensions } from "react-native";
-import { PieChart, BarChart } from "react-native-chart-kit";
+import React, { useMemo } from "react";
+import { Text, StyleSheet, ScrollView, View } from "react-native";
 import { useExpenses } from "../store/ExpenseContext";
+import { useTheme } from "../theme/ThemeContext";
+import BarTrendChart from "../components/BarTrendChart";
 
-const screenWidth = Dimensions.get("window").width - 32;
 const CURRENCY_SYMBOL = "\u20B9";
-const chartConfig = {
-  backgroundGradientFrom: "#fff",
-  backgroundGradientTo: "#fff",
-  decimalPlaces: 0,
-  color: (opacity = 1) => `rgba(33, 150, 243, ${opacity})`,
-  labelColor: () => "#333",
+const getLocalDateKey = (value) => {
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getChartDateLabel = (value) => {
+  const date = new Date(value);
+  return `${date.getDate()}/${date.getMonth() + 1}`;
 };
 
 const DashboardScreen = () => {
-  const { expenses, loadExpenses } = useExpenses();
-  const [todayTotal, setTodayTotal] = useState(0);
+  const { expenses } = useExpenses();
+  const { theme } = useTheme();
+  const styles = useMemo(() => getStyles(theme), [theme]);
 
-  useEffect(() => {
-    loadExpenses();
-  }, [loadExpenses]);
-
-  useEffect(() => {
-    const today = new Date();
-    const start = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate()
-    ).toISOString();
+  const todayTotal = useMemo(() => {
+    const todayKey = getLocalDateKey(new Date());
     const total = expenses
-      .filter((e) => e.date >= start)
+      .filter((expense) => getLocalDateKey(expense.date) === todayKey)
       .reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
-    setTodayTotal(total);
-  }, [expenses]);
-
-  const pieData = useMemo(() => {
-    const totalsByCategory = {};
-
-    expenses.forEach((expense) => {
-      const categoryName = expense.category_name || "Others";
-      totalsByCategory[categoryName] =
-        (totalsByCategory[categoryName] || 0) + Number(expense.amount || 0);
-    });
-
-    const colors = [
-      "#f44336",
-      "#2196f3",
-      "#4caf50",
-      "#ff9800",
-      "#9c27b0",
-      "#607d8b",
-    ];
-
-    return Object.keys(totalsByCategory).map((categoryName, index) => ({
-      name: categoryName,
-      population: totalsByCategory[categoryName],
-      color: colors[index % colors.length],
-      legendFontColor: "#333",
-      legendFontSize: 12,
-    }));
+    return total;
   }, [expenses]);
 
   const barData = useMemo(() => {
@@ -68,10 +38,10 @@ const DashboardScreen = () => {
     for (let i = 6; i >= 0; i -= 1) {
       const day = new Date();
       day.setDate(day.getDate() - i);
-      const key = day.toISOString().slice(0, 10);
-      labels.push(day.toDateString().slice(0, 3));
+      const key = getLocalDateKey(day);
+      labels.push(getChartDateLabel(day));
       const total = expenses
-        .filter((expense) => expense.date.slice(0, 10) === key)
+        .filter((expense) => getLocalDateKey(expense.date) === key)
         .reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
       data.push(total);
     }
@@ -80,68 +50,79 @@ const DashboardScreen = () => {
   }, [expenses]);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Today</Text>
-      <Text style={styles.total}>
-        {CURRENCY_SYMBOL}
-        {todayTotal.toFixed(2)}
-      </Text>
-
-      <Text style={styles.sectionTitle}>Spending by Category</Text>
-      {pieData.length > 0 ? (
-        <PieChart
-          data={pieData}
-          width={screenWidth}
-          height={220}
-          accessor="population"
-          backgroundColor="transparent"
-          chartConfig={chartConfig}
-          paddingLeft="15"
-        />
-      ) : (
-        <Text style={styles.emptyText}>
-          Add a few expenses to unlock the charts.
+    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+      <View style={styles.heroCard}>
+        <Text style={styles.title}>Today</Text>
+        <Text style={styles.total}>
+          {CURRENCY_SYMBOL}
+          {todayTotal.toFixed(2)}
         </Text>
-      )}
+        <Text style={styles.caption}>
+          Live pulse of your cash flow across the day.
+        </Text>
+      </View>
 
       <Text style={styles.sectionTitle}>Last 7 Days</Text>
-      <BarChart
-        data={barData}
-        width={screenWidth}
-        height={220}
-        fromZero
-        chartConfig={chartConfig}
-        style={styles.chart}
-      />
+      <View style={styles.chartCard}>
+        <BarTrendChart
+          labels={barData.labels}
+          data={barData.datasets[0].data}
+        />
+      </View>
     </ScrollView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  total: {
-    fontSize: 28,
-    fontWeight: "800",
-    marginTop: 8,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    marginTop: 16,
-  },
-  chart: {
-    borderRadius: 8,
-  },
-  emptyText: {
-    marginTop: 12,
-    color: "#666",
-  },
-});
+const getStyles = (theme) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    container: {
+      padding: 16,
+      paddingBottom: 32,
+    },
+    heroCard: {
+      backgroundColor: theme.surface,
+      borderColor: theme.border,
+      borderWidth: 1,
+      borderRadius: 28,
+      padding: 20,
+    },
+    title: {
+      fontSize: 14,
+      fontWeight: "800",
+      color: theme.primary,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+    },
+    total: {
+      fontSize: 34,
+      fontWeight: "800",
+      marginTop: 8,
+      color: theme.text,
+    },
+    caption: {
+      color: theme.textMuted,
+      marginTop: 8,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: "700",
+      marginTop: 18,
+      marginBottom: 10,
+      color: theme.text,
+    },
+    chartCard: {
+      backgroundColor: theme.surface,
+      borderColor: theme.border,
+      borderWidth: 1,
+      borderRadius: 24,
+      overflow: "hidden",
+      paddingTop: 14,
+      paddingBottom: 10,
+    },
+  });
 
 export default DashboardScreen;
