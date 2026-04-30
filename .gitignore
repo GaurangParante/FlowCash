@@ -1,1 +1,69 @@
-node_modules
+# Node modules (React Native / JS)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Android build files
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+
+# Gradle
+.gradle/
+build/
+
+# APK / AAB outputs
+*.apk
+*.aab
+
+# Keystore (VERY IMPORTANT - never commit)
+*.jks
+*.keystore
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files (VS Code, Android Studio, IntelliJ)
+.vscode/
+.idea/
+*.iml
+
+# React Native cache
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# Metro bundler cache
+.metro-cache/
+
+# Temporary files
+tmp/
+temp/
+
+# Environment files
+.env
+.env.*
+
+# Debugging
+*.hprof
+
+# Mac system files
+.AppleDouble
+.LSOverride
+
+# Windows system files
+ehthumbs.db
+Desktop.ini
+
+# Coverage reports
+coverage/
+
+# Firebase (if used)
+google-services.json
+GoogleService-Info.plist

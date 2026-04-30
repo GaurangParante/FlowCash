@@ -6,7 +6,7 @@ import InsightsScreen from "../screens/InsightsScreen";
 import CategoriesScreen from "../screens/CategoriesScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import AddExpenseScreen from "../screens/AddExpenseScreen";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import Icon from "@react-native-vector-icons/material-design-icons";
 import { TouchableOpacity, View, StyleSheet } from "react-native";
 
 const Tab = createBottomTabNavigator();

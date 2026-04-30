@@ -811,10 +811,10 @@ library {
   maven_library {
     groupId: "org.jetbrains.kotlin"
     artifactId: "kotlin-stdlib"
-    version: "1.6.21"
+    version: "1.7.22"
   }
   digests {
-    sha256: "s\234Rfr\2733us\262\217c\257\2500n\260\210\260\303\240\226\177V\326\310\237J0\022\244\222"
+    sha256: "\371\205\005\365\nj\034\035\300\002\326\020.KA\232\371=\001\035Z\020inu\243\2115\251n\251/"
   }
   repo_index {
     value: 1
@@ -824,10 +824,10 @@ library {
   maven_library {
     groupId: "org.jetbrains.kotlin"
     artifactId: "kotlin-stdlib-common"
-    version: "1.6.21"
+    version: "1.7.22"
   }
   digests {
-    sha256: "\030;\354Y\315\237:\024\225{\031\016\214\207\234\361\031K\321\361\006\260\247\266\341\313\270y\r$#c"
+    sha256: "yH\214\337(LK[9\230\323\002\352\351\277\t\200\372D\0369\006\306\245=\021t\371x\243\344\204"
   }
   repo_index {
     value: 1
@@ -876,10 +876,10 @@ library {
   maven_library {
     groupId: "org.jetbrains.kotlin"
     artifactId: "kotlin-stdlib-jdk8"
-    version: "1.6.21"
+    version: "1.7.22"
   }
   digests {
-    sha256: "\332\264T\211\264w6\325\237\316D\270\006v\361\224z\233k\312\261\017\326\016\207\212\203\275\202\246\225L"
+    sha256: "1Q\002\377\034\302\347\006(k\"qG\270\333#x=\271\021\250\222\230\227j\220\242.\a\034\321\027"
   }
   repo_index {
     value: 1
@@ -889,10 +889,10 @@ library {
   maven_library {
     groupId: "org.jetbrains.kotlin"
     artifactId: "kotlin-stdlib-jdk7"
-    version: "1.6.21"
+    version: "1.7.22"
   }
   digests {
-    sha256: "\361\260cM\273\224\027 8F0 \273-\324\\\242hI\370\316)\326%\254\260\361V\235\021\333\356"
+    sha256: "\255\347v\215\230\224\n08VR\232\363s\367_\375^&\225\264\334\031\216\233\0309j\372S\371\340"
   }
   repo_index {
     value: 1
@@ -1457,10 +1457,10 @@ module_dependencies {
   dependency_index: 0
   dependency_index: 36
   dependency_index: 70
+  dependency_index: 67
   dependency_index: 16
   dependency_index: 71
   dependency_index: 62
-  dependency_index: 67
   dependency_index: 24
   dependency_index: 72
   dependency_index: 73

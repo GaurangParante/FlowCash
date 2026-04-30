@@ -64,6 +64,10 @@
         "source": "com.flowcash.app-main-30:/mipmap-xhdpi/ic_launcher_round.png"
     },
     {
+        "merged": "com.flowcash.app-merged_res-29:/raw_node_modules_reactnativevectoricons_materialdesignicons_fonts_materialdesignicons.ttf.flat",
+        "source": "com.flowcash.app-react-24:/raw/node_modules_reactnativevectoricons_materialdesignicons_fonts_materialdesignicons.ttf"
+    },
+    {
         "merged": "com.flowcash.app-merged_res-29:/mipmap-xxxhdpi_ic_launcher.png.flat",
         "source": "com.flowcash.app-main-30:/mipmap-xxxhdpi/ic_launcher.png"
     }

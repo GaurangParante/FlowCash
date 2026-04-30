@@ -5,6 +5,13 @@ import { useExpenses } from "../store/ExpenseContext";
 
 const screenWidth = Dimensions.get("window").width - 32;
 const CURRENCY_SYMBOL = "\u20B9";
+const chartConfig = {
+  backgroundGradientFrom: "#fff",
+  backgroundGradientTo: "#fff",
+  decimalPlaces: 0,
+  color: (opacity = 1) => `rgba(33, 150, 243, ${opacity})`,
+  labelColor: () => "#333",
+};
 
 const DashboardScreen = () => {
   const { expenses, loadExpenses } = useExpenses();
@@ -88,6 +95,7 @@ const DashboardScreen = () => {
           height={220}
           accessor="population"
           backgroundColor="transparent"
+          chartConfig={chartConfig}
           paddingLeft="15"
         />
       ) : (
@@ -102,7 +110,7 @@ const DashboardScreen = () => {
         width={screenWidth}
         height={220}
         fromZero
-        chartConfig={styles.chartConfig}
+        chartConfig={chartConfig}
         style={styles.chart}
       />
     </ScrollView>
@@ -133,13 +141,6 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: 12,
     color: "#666",
-  },
-  chartConfig: {
-    backgroundGradientFrom: "#fff",
-    backgroundGradientTo: "#fff",
-    decimalPlaces: 0,
-    color: (opacity) => `rgba(33, 150, 243, ${opacity})`,
-    labelColor: () => "#333",
   },
 });
 

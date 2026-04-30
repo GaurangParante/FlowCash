@@ -13,6 +13,8 @@ import java.util.ArrayList;
 
 // @react-native-async-storage/async-storage
 import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
+// @react-native-vector-icons/material-design-icons
+import com.reactnativevectoricons.material_design_icons.VectorIconsMaterialDesignIconsPackage;
 // react-native-gesture-handler
 import com.swmansion.gesturehandler.RNGestureHandlerPackage;
 // react-native-reanimated
@@ -25,8 +27,6 @@ import com.swmansion.rnscreens.RNScreensPackage;
 import org.pgsqlite.SQLitePluginPackage;
 // react-native-svg
 import com.horcrux.svg.SvgPackage;
-// react-native-vector-icons
-import com.oblador.vectoricons.VectorIconsPackage;
 
 public class PackageList {
   private Application application;
@@ -73,13 +73,13 @@ public class PackageList {
     return new ArrayList<>(Arrays.<ReactPackage>asList(
       new MainReactPackage(mConfig),
       new AsyncStoragePackage(),
+      new VectorIconsMaterialDesignIconsPackage(),
       new RNGestureHandlerPackage(),
       new ReanimatedPackage(),
       new SafeAreaContextPackage(),
       new RNScreensPackage(),
       new SQLitePluginPackage(),
-      new SvgPackage(),
-      new VectorIconsPackage()
+      new SvgPackage()
     ));
   }
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, Button, StyleSheet } from "react-native";
+import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 import { useExpenses } from "../store/ExpenseContext";
 import { parseSmartInput } from "../utils/parseInput";
 import CategoryPicker from "../components/CategoryPicker";
@@ -42,28 +42,39 @@ const AddExpenseScreen = ({ navigation }) => {
   const onSave = async () => {
     const parsedAmount = parseFloat(amount);
     if (!parsedAmount || Number.isNaN(parsedAmount)) {
-      alert("Please enter a valid amount");
+      Alert.alert("Invalid amount", "Please enter a valid amount");
       return;
     }
 
     if (!categoryId) {
-      alert("Please choose a category");
+      Alert.alert("Missing category", "Please choose a category");
       return;
     }
 
     const parsedDate = new Date(`${dateInput}T00:00:00`);
     if (Number.isNaN(parsedDate.getTime())) {
-      alert("Please enter a valid date in YYYY-MM-DD format");
+      Alert.alert(
+        "Invalid date",
+        "Please enter a valid date in YYYY-MM-DD format"
+      );
       return;
     }
 
-    await addExpense({
-      amount: parsedAmount,
-      category_id: categoryId,
-      note,
-      date: parsedDate.toISOString(),
-    });
-    navigation.goBack();
+    try {
+      await addExpense({
+        amount: parsedAmount,
+        category_id: categoryId,
+        note,
+        date: parsedDate.toISOString(),
+      });
+      navigation.goBack();
+    } catch (error) {
+      console.error("Save expense failed", error);
+      Alert.alert(
+        "Save failed",
+        "The expense could not be saved. Please try again."
+      );
+    }
   };
 
   return (
