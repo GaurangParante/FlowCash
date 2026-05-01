@@ -1,9 +1,15 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, Pressable, Switch, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "@react-native-vector-icons/material-design-icons";
 import { useTheme } from "../theme/ThemeContext";
-import { scheduleDailyReminder } from "../utils/notifications";
+import {
+  cancelDailyReminder,
+  getDailyReminderEnabled,
+  openReminderSettings,
+  scheduleDailyReminder,
+  syncDailyReminder,
+} from "../utils/notifications";
 
 const AppTopBar = () => {
   const { theme, resolvedMode, toggleTheme } = useTheme();
@@ -11,10 +17,41 @@ const AppTopBar = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [reminderEnabled, setReminderEnabled] = useState(false);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadReminderState = async () => {
+      try {
+        const enabled = await getDailyReminderEnabled();
+        if (!isMounted) {
+          return;
+        }
+
+        setReminderEnabled(enabled);
+
+        if (enabled) {
+          const result = await syncDailyReminder(20, 0);
+          if (isMounted && !result?.ok) {
+            setReminderEnabled(false);
+          }
+        }
+      } catch (error) {
+        console.error("Reminder state load failed", error);
+      }
+    };
+
+    loadReminderState();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const onToggleReminder = async (value) => {
     if (!value) {
+      await cancelDailyReminder();
       setReminderEnabled(false);
-      Alert.alert("Reminder disabled");
+      Alert.alert("Reminder disabled", "Daily reminder has been turned off.");
       return;
     }
 
@@ -25,14 +62,25 @@ const AppTopBar = () => {
         setReminderEnabled(false);
         Alert.alert(
           "Reminder unavailable",
-          result?.reason ||
-            "Daily reminders are not configured in this build yet."
+          result?.reason || "Daily reminder enable nahi ho paya.",
+          result?.action
+            ? [
+                {
+                  text: "Not now",
+                  style: "cancel",
+                },
+                {
+                  text: "Open settings",
+                  onPress: () => openReminderSettings(result.action),
+                },
+              ]
+            : [{ text: "OK" }]
         );
         return;
       }
 
       setReminderEnabled(true);
-      Alert.alert("Reminder set", "Daily reminder scheduled at 8:00 PM");
+      Alert.alert("Reminder set", "Daily reminder scheduled at 8:00 PM.");
     } catch (error) {
       console.error("Daily reminder failed", error);
       setReminderEnabled(false);
