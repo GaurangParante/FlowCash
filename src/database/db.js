@@ -114,6 +114,41 @@ export const addExpense = async ({ amount, category_id, note, date }) => {
   }
 };
 
+export const updateExpense = async (
+  id,
+  { amount, category_id, note, date }
+) => {
+  try {
+    const db = await initDB();
+    await db.executeSql(
+      "UPDATE expenses SET amount = ?, category_id = ?, note = ?, date = ? WHERE id = ?",
+      [amount, category_id, note || "", date, id]
+    );
+    const [rowRes] = await db.executeSql(
+      `SELECT e.*, c.name as category_name, c.icon as category_icon
+       FROM expenses e
+       LEFT JOIN categories c ON e.category_id = c.id
+       WHERE e.id = ?`,
+      [id]
+    );
+    return rowRes.rows.item(0);
+  } catch (err) {
+    console.error("Update expense error", err);
+    throw err;
+  }
+};
+
+export const deleteExpense = async (id) => {
+  try {
+    const db = await initDB();
+    await db.executeSql("DELETE FROM expenses WHERE id = ?", [id]);
+    return true;
+  } catch (err) {
+    console.error("Delete expense error", err);
+    return false;
+  }
+};
+
 export const getCategories = async () => {
   try {
     const db = await initDB();

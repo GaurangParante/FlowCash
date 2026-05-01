@@ -11,10 +11,30 @@ import notifee, {
 const DAILY_REMINDER_ID = "daily-expense-reminder";
 const DAILY_REMINDER_CHANNEL_ID = "daily-reminders";
 const REMINDER_ENABLED_KEY = "@flowcash:daily-reminder-enabled";
+const REMINDER_TIME_KEY = "@flowcash:daily-reminder-time";
+const DEFAULT_REMINDER_TIME = { hour: 20, minute: 0 };
 
 const DAILY_REMINDER_TITLE = "FlowCash reminder";
 const DAILY_REMINDER_BODY =
   "Aaj ke expenses add kar lo taaki spending clear rahe.";
+
+const clampTimePart = (value, max) => {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    return 0;
+  }
+
+  if (parsed < 0) {
+    return 0;
+  }
+
+  if (parsed > max) {
+    return max;
+  }
+
+  return Math.floor(parsed);
+};
 
 const getNextReminderDate = (hour, minute) => {
   const date = new Date();
@@ -106,6 +126,13 @@ export const scheduleDailyReminder = async (hour = 20, minute = 0) => {
   );
 
   await AsyncStorage.setItem(REMINDER_ENABLED_KEY, "true");
+  await AsyncStorage.setItem(
+    REMINDER_TIME_KEY,
+    JSON.stringify({
+      hour: clampTimePart(hour, 23),
+      minute: clampTimePart(minute, 59),
+    })
+  );
 
   return {
     ok: true,
@@ -125,14 +152,44 @@ export const getDailyReminderEnabled = async () => {
   return value === "true";
 };
 
-export const syncDailyReminder = async (hour = 20, minute = 0) => {
+export const getDailyReminderTime = async () => {
+  try {
+    const value = await AsyncStorage.getItem(REMINDER_TIME_KEY);
+
+    if (!value) {
+      return DEFAULT_REMINDER_TIME;
+    }
+
+    const parsed = JSON.parse(value);
+    return {
+      hour: clampTimePart(parsed?.hour, 23),
+      minute: clampTimePart(parsed?.minute, 59),
+    };
+  } catch (error) {
+    console.error("Reminder time load failed", error);
+    return DEFAULT_REMINDER_TIME;
+  }
+};
+
+export const saveDailyReminderTime = async (hour, minute) => {
+  const nextTime = {
+    hour: clampTimePart(hour, 23),
+    minute: clampTimePart(minute, 59),
+  };
+
+  await AsyncStorage.setItem(REMINDER_TIME_KEY, JSON.stringify(nextTime));
+  return nextTime;
+};
+
+export const syncDailyReminder = async () => {
   const enabled = await getDailyReminderEnabled();
 
   if (!enabled) {
     return { ok: true, enabled: false };
   }
 
-  const result = await scheduleDailyReminder(hour, minute);
+  const time = await getDailyReminderTime();
+  const result = await scheduleDailyReminder(time.hour, time.minute);
   return {
     ...result,
     enabled: result?.ok === true,

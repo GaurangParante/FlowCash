@@ -38,16 +38,42 @@ const DATE_PRESETS = [
   { label: "Yesterday", offset: -1 },
 ];
 
-const AddExpenseScreen = ({ navigation }) => {
-  const { categories, addExpense } = useExpenses();
+const parseStoredDate = (value) => {
+  if (!value) {
+    return new Date();
+  }
+
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed;
+  }
+
+  return new Date();
+};
+
+const AddExpenseScreen = ({ navigation, route }) => {
+  const { categories, addExpense, editExpense } = useExpenses();
   const { theme } = useTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
+  const editingExpense = route.params?.expense || null;
+  const isEditing = Boolean(editingExpense);
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState(null);
   const [note, setNote] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const amountRef = useRef(null);
   const noteRef = useRef(null);
+
+  useEffect(() => {
+    if (editingExpense) {
+      setAmount(
+        editingExpense.amount !== undefined ? String(editingExpense.amount) : ""
+      );
+      setCategoryId(editingExpense.category_id || null);
+      setNote(editingExpense.note || "");
+      setSelectedDate(parseStoredDate(editingExpense.date));
+    }
+  }, [editingExpense]);
 
   useEffect(() => {
     if (categories.length > 0 && !categoryId) {
@@ -85,6 +111,16 @@ const AddExpenseScreen = ({ navigation }) => {
   };
 
   const resetForm = () => {
+    if (editingExpense) {
+      setAmount(
+        editingExpense.amount !== undefined ? String(editingExpense.amount) : ""
+      );
+      setCategoryId(editingExpense.category_id || null);
+      setNote(editingExpense.note || "");
+      setSelectedDate(parseStoredDate(editingExpense.date));
+      return;
+    }
+
     setAmount("");
     setNote("");
     setSelectedDate(new Date());
@@ -117,12 +153,20 @@ const AddExpenseScreen = ({ navigation }) => {
     }
 
     try {
-      await addExpense({
+      const payload = {
         amount: parsedAmount,
         category_id: categoryId,
         note,
         date: buildStoredDate(dateInput),
-      });
+      };
+
+      if (isEditing) {
+        await editExpense(editingExpense.id, payload);
+        navigation.goBack();
+        return;
+      }
+
+      await addExpense(payload);
       if (shouldClose) {
         navigation.goBack();
         return;
@@ -130,10 +174,12 @@ const AddExpenseScreen = ({ navigation }) => {
 
       resetForm();
     } catch (error) {
-      console.error("Save expense failed", error);
+      console.error(`${isEditing ? "Update" : "Save"} expense failed`, error);
       Alert.alert(
-        "Save failed",
-        "The expense could not be saved. Please try again."
+        isEditing ? "Update failed" : "Save failed",
+        `The expense could not be ${
+          isEditing ? "updated" : "saved"
+        }. Please try again.`
       );
     }
   };
@@ -157,10 +203,18 @@ const AddExpenseScreen = ({ navigation }) => {
     >
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.heroCard}>
-          <Text style={styles.eyebrow}>Add Expense</Text>
-          <Text style={styles.title}>Track a spend in a few taps.</Text>
+          <Text style={styles.eyebrow}>
+            {isEditing ? "Edit Expense" : "Add Expense"}
+          </Text>
+          <Text style={styles.title}>
+            {isEditing
+              ? "Update the spend details."
+              : "Track a spend in a few taps."}
+          </Text>
           <Text style={styles.subtitle}>
-            Type `450 sushi` or tap a quick amount, category, and date.
+            {isEditing
+              ? "Change amount, category, note, or date and save the update."
+              : "Type `450 sushi` or tap a quick amount, category, and date."}
           </Text>
 
           <View style={styles.amountWrap}>
@@ -254,23 +308,29 @@ const AddExpenseScreen = ({ navigation }) => {
 
         <View style={styles.actions}>
           <Pressable style={styles.secondaryButton} onPress={resetForm}>
-            <Text style={styles.secondaryButtonText}>Reset</Text>
+            <Text style={styles.secondaryButtonText}>
+              {isEditing ? "Restore" : "Reset"}
+            </Text>
           </Pressable>
           <Pressable
             style={styles.primaryButton}
             onPress={() => submitExpense(true)}
           >
-            <Text style={styles.primaryButtonText}>Save expense</Text>
+            <Text style={styles.primaryButtonText}>
+              {isEditing ? "Update expense" : "Save expense"}
+            </Text>
           </Pressable>
         </View>
 
-        <Pressable
-          style={styles.inlineAction}
-          onPress={() => submitExpense(false)}
-        >
-          <Icon name="plus-circle-outline" size={18} color={theme.primary} />
-          <Text style={styles.inlineActionText}>Save and add another</Text>
-        </Pressable>
+        {!isEditing ? (
+          <Pressable
+            style={styles.inlineAction}
+            onPress={() => submitExpense(false)}
+          >
+            <Icon name="plus-circle-outline" size={18} color={theme.primary} />
+            <Text style={styles.inlineActionText}>Save and add another</Text>
+          </Pressable>
+        ) : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );

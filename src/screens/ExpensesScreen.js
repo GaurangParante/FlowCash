@@ -6,11 +6,13 @@ import {
   StyleSheet,
   Share,
   Pressable,
+  Alert,
 } from "react-native";
 import { useExpenses } from "../store/ExpenseContext";
 import CategoryPicker from "../components/CategoryPicker";
 import DateField from "../components/DateField";
 import { useTheme } from "../theme/ThemeContext";
+import Icon from "@react-native-vector-icons/material-design-icons";
 
 const CURRENCY_SYMBOL = "\u20B9";
 
@@ -22,12 +24,12 @@ const buildLocalDateTime = (date, hourOffset = 0) => {
   return `${year}-${month}-${day}T${hour}:00:00`;
 };
 
-const ExpenseItem = React.memo(({ item, theme }) => {
+const ExpenseItem = React.memo(({ item, theme, onEdit, onDelete }) => {
   const styles = getStyles(theme);
 
   return (
     <View style={styles.item}>
-      <View>
+      <View style={styles.itemContent}>
         <Text style={styles.itemAmount}>
           {CURRENCY_SYMBOL}
           {Number(item.amount).toFixed(2)}
@@ -36,14 +38,37 @@ const ExpenseItem = React.memo(({ item, theme }) => {
           {item.category_name || "Others"} |{" "}
           {new Date(item.date).toLocaleDateString()}
         </Text>
+        <Text style={styles.itemNote}>{item.note || "No note"}</Text>
       </View>
-      <Text style={styles.itemNote}>{item.note || "No note"}</Text>
+      <View style={styles.itemActions}>
+        <Pressable
+          onPress={() => onEdit(item)}
+          style={styles.iconButton}
+          accessibilityRole="button"
+          accessibilityLabel={`Edit expense of ${Number(item.amount).toFixed(
+            2
+          )}`}
+        >
+          <Icon name="pencil-outline" size={20} color={theme.primary} />
+        </Pressable>
+        <Pressable
+          onPress={() => onDelete(item)}
+          style={styles.iconButton}
+          accessibilityRole="button"
+          accessibilityLabel={`Delete expense of ${Number(item.amount).toFixed(
+            2
+          )}`}
+        >
+          <Icon name="trash-can-outline" size={20} color={theme.danger} />
+        </Pressable>
+      </View>
     </View>
   );
 });
 
-const ExpensesScreen = () => {
-  const { expenses, loadExpenses, categories, exportCSV } = useExpenses();
+const ExpensesScreen = ({ navigation }) => {
+  const { expenses, loadExpenses, categories, exportCSV, removeExpense } =
+    useExpenses();
   const { theme } = useTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -80,6 +105,35 @@ const ExpensesScreen = () => {
       console.error(err);
     }
   };
+
+  const onEditExpense = useCallback(
+    (item) => {
+      navigation.navigate("AddExpense", { expense: item });
+    },
+    [navigation]
+  );
+
+  const onDeleteExpense = useCallback(
+    (item) => {
+      Alert.alert(
+        "Delete expense",
+        `Are you sure you want to delete ${CURRENCY_SYMBOL}${Number(
+          item.amount
+        ).toFixed(2)}?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              await removeExpense(item.id);
+            },
+          },
+        ]
+      );
+    },
+    [removeExpense]
+  );
 
   return (
     <View style={styles.screen}>
@@ -127,7 +181,14 @@ const ExpensesScreen = () => {
       <FlatList
         data={expenses}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <ExpenseItem item={item} theme={theme} />}
+        renderItem={({ item }) => (
+          <ExpenseItem
+            item={item}
+            theme={theme}
+            onEdit={onEditExpense}
+            onDelete={onDeleteExpense}
+          />
+        )}
         contentContainerStyle={
           expenses.length === 0 ? styles.emptyList : styles.listContent
         }
@@ -210,7 +271,11 @@ const getStyles = (theme) =>
       backgroundColor: theme.surface,
       flexDirection: "row",
       justifyContent: "space-between",
-      alignItems: "center",
+      alignItems: "flex-start",
+    },
+    itemContent: {
+      flex: 1,
+      paddingRight: 12,
     },
     itemAmount: {
       fontWeight: "800",
@@ -223,8 +288,20 @@ const getStyles = (theme) =>
     },
     itemNote: {
       color: theme.textSoft,
-      maxWidth: "40%",
-      textAlign: "right",
+      marginTop: 8,
+    },
+    itemActions: {
+      flexDirection: "row",
+      marginTop: 2,
+    },
+    iconButton: {
+      width: 38,
+      height: 38,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.surfaceMuted,
+      marginLeft: 8,
     },
     emptyList: {
       flexGrow: 1,

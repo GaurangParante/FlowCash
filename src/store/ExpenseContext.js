@@ -10,6 +10,8 @@ import {
   getCategories,
   getExpenses,
   addExpense as dbAddExpense,
+  updateExpense as dbUpdateExpense,
+  deleteExpense as dbDeleteExpense,
   exportExpensesCSV,
   updateCategory,
   deleteCategory,
@@ -43,6 +45,26 @@ export const ExpenseProvider = ({ children }) => {
     const expense = await dbAddExpense(payload);
     setExpenses((currentExpenses) => [expense, ...currentExpenses]);
     return expense;
+  }, []);
+
+  const editExpense = useCallback(async (id, payload) => {
+    const expense = await dbUpdateExpense(id, payload);
+    setExpenses((currentExpenses) =>
+      currentExpenses.map((currentExpense) =>
+        currentExpense.id === id ? expense : currentExpense
+      )
+    );
+    return expense;
+  }, []);
+
+  const removeExpense = useCallback(async (id) => {
+    const removed = await dbDeleteExpense(id);
+    if (removed) {
+      setExpenses((currentExpenses) =>
+        currentExpenses.filter((currentExpense) => currentExpense.id !== id)
+      );
+    }
+    return removed;
   }, []);
 
   const createCategory = useCallback(
@@ -95,6 +117,8 @@ export const ExpenseProvider = ({ children }) => {
       loadCategories,
       loadExpenses,
       addExpense,
+      editExpense,
+      removeExpense,
       createCategory,
       editCategory,
       removeCategory,
@@ -107,6 +131,8 @@ export const ExpenseProvider = ({ children }) => {
       loadCategories,
       loadExpenses,
       addExpense,
+      editExpense,
+      removeExpense,
       createCategory,
       editCategory,
       removeCategory,

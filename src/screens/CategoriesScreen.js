@@ -4,13 +4,13 @@ import {
   Text,
   FlatList,
   TextInput,
-  TouchableOpacity,
   Alert,
   Pressable,
   StyleSheet,
 } from "react-native";
 import { useExpenses } from "../store/ExpenseContext";
 import { useTheme } from "../theme/ThemeContext";
+import Icon from "@react-native-vector-icons/material-design-icons";
 
 const CategoriesScreen = () => {
   const { categories, createCategory, editCategory, removeCategory } =
@@ -43,7 +43,7 @@ const CategoriesScreen = () => {
 
   const onDelete = (item) => {
     Alert.alert("Delete category", `Delete ${item.name}?`, [
-      { text: "Cancel" },
+      { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
         style: "destructive",
@@ -84,15 +84,22 @@ const CategoriesScreen = () => {
           <View style={styles.item}>
             <Text style={styles.itemName}>{item.name}</Text>
             <View style={styles.itemActions}>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => onEdit(item)}
-                style={styles.editBtn}
+                style={styles.iconButton}
+                accessibilityRole="button"
+                accessibilityLabel={`Edit ${item.name} category`}
               >
-                <Text style={styles.editText}>Edit</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => onDelete(item)}>
-                <Text style={styles.deleteText}>Delete</Text>
-              </TouchableOpacity>
+                <Icon name="pencil-outline" size={20} color={theme.primary} />
+              </Pressable>
+              <Pressable
+                onPress={() => onDelete(item)}
+                style={styles.iconButton}
+                accessibilityRole="button"
+                accessibilityLabel={`Delete ${item.name} category`}
+              >
+                <Icon name="trash-can-outline" size={20} color={theme.danger} />
+              </Pressable>
             </View>
           </View>
         )}
@@ -171,16 +178,14 @@ const getStyles = (theme) =>
     itemActions: {
       flexDirection: "row",
     },
-    editBtn: {
-      marginRight: 14,
-    },
-    editText: {
-      color: theme.primary,
-      fontWeight: "700",
-    },
-    deleteText: {
-      color: theme.danger,
-      fontWeight: "700",
+    iconButton: {
+      width: 38,
+      height: 38,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.surfaceMuted,
+      marginLeft: 8,
     },
   });
 
