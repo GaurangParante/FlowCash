@@ -3,6 +3,7 @@ import { Text, StyleSheet, ScrollView, View } from "react-native";
 import { useExpenses } from "../store/ExpenseContext";
 import { useTheme } from "../theme/ThemeContext";
 import BarTrendChart from "../components/BarTrendChart";
+import SpendingCategoryChart from "../components/SpendingCategoryChart";
 
 const CURRENCY_SYMBOL = "\u20B9";
 const getLocalDateKey = (value) => {
@@ -49,6 +50,37 @@ const DashboardScreen = () => {
     return { labels, datasets: [{ data }] };
   }, [expenses]);
 
+  const spendingByCategory = useMemo(() => {
+    const categoryTotals = expenses.reduce((totals, expense) => {
+      const name = expense.category_name || "Others";
+      totals[name] = (totals[name] || 0) + Number(expense.amount || 0);
+      return totals;
+    }, {});
+
+    const sorted = Object.entries(categoryTotals)
+      .map(([name, value]) => ({ name, value }))
+      .filter((item) => item.value > 0)
+      .sort((a, b) => b.value - a.value);
+
+    const primaryItems = sorted.slice(0, 4);
+    const remainingTotal = sorted
+      .slice(4)
+      .reduce((sum, item) => sum + item.value, 0);
+
+    const items =
+      remainingTotal > 0
+        ? [
+            ...primaryItems.slice(0, 3),
+            { name: "Others", value: remainingTotal },
+          ]
+        : primaryItems;
+
+    return {
+      total: sorted.reduce((sum, item) => sum + item.value, 0),
+      items,
+    };
+  }, [expenses]);
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
       <View style={styles.heroCard}>
@@ -68,6 +100,20 @@ const DashboardScreen = () => {
           labels={barData.labels}
           data={barData.datasets[0].data}
         />
+      </View>
+
+      <Text style={styles.sectionTitle}>Spending by Category</Text>
+      <View style={styles.categoryCard}>
+        {spendingByCategory.items.length > 0 ? (
+          <SpendingCategoryChart
+            items={spendingByCategory.items}
+            total={spendingByCategory.total}
+          />
+        ) : (
+          <Text style={styles.emptyText}>
+            Add a few expenses to see category-wise spending on your dashboard.
+          </Text>
+        )}
       </View>
     </ScrollView>
   );
@@ -122,6 +168,21 @@ const getStyles = (theme) =>
       overflow: "hidden",
       paddingTop: 14,
       paddingBottom: 10,
+    },
+    categoryCard: {
+      backgroundColor: theme.mode === "dark" ? "#142239" : theme.surface,
+      borderColor: theme.mode === "dark" ? "#223655" : theme.border,
+      borderWidth: 1,
+      borderRadius: 24,
+      overflow: "hidden",
+      paddingTop: 12,
+      paddingBottom: 8,
+    },
+    emptyText: {
+      color: theme.textMuted,
+      paddingHorizontal: 16,
+      paddingBottom: 14,
+      lineHeight: 20,
     },
   });
 

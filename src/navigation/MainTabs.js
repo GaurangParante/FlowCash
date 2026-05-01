@@ -9,6 +9,7 @@ import AddExpenseScreen from "../screens/AddExpenseScreen";
 import Icon from "@react-native-vector-icons/material-design-icons";
 import { TouchableOpacity, View, StyleSheet } from "react-native";
 import { useTheme } from "../theme/ThemeContext";
+import AppTopBar from "../components/AppTopBar";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -86,8 +87,11 @@ const HomeWrapper = ({ navigation }) => {
   const styles = getStyles(theme);
 
   return (
-    <>
-      <Tabs />
+    <View style={styles.shell}>
+      <AppTopBar />
+      <View style={styles.tabsWrap}>
+        <Tabs />
+      </View>
       <View style={styles.fabWrap} pointerEvents="box-none">
         <TouchableOpacity
           style={styles.fab}
@@ -100,7 +104,7 @@ const HomeWrapper = ({ navigation }) => {
           />
         </TouchableOpacity>
       </View>
-    </>
+    </View>
   );
 };
 
@@ -115,6 +119,13 @@ const MainTabs = () => {
 
 const getStyles = (theme) =>
   StyleSheet.create({
+    shell: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    tabsWrap: {
+      flex: 1,
+    },
     fabWrap: { position: "absolute", right: 0, bottom: 0, left: 0, top: 0 },
     fab: {
       position: "absolute",

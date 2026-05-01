@@ -1,15 +1,6 @@
 import React, { useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Switch,
-  Alert,
-  Pressable,
-  ScrollView,
-} from "react-native";
+import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { useExpenses } from "../store/ExpenseContext";
-import { scheduleDailyReminder } from "../utils/notifications";
 import { useTheme } from "../theme/ThemeContext";
 import BarTrendChart from "../components/BarTrendChart";
 
@@ -112,9 +103,8 @@ const buildPeriodConfig = (period) => {
 
 const InsightsScreen = () => {
   const { expenses } = useExpenses();
-  const [reminderEnabled, setReminderEnabled] = useState(false);
   const [period, setPeriod] = useState("day");
-  const { theme, resolvedMode, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
 
   const analytics = useMemo(() => {
@@ -203,35 +193,6 @@ const InsightsScreen = () => {
       topCategories,
     };
   }, [expenses, period]);
-
-  const onToggle = async (value) => {
-    if (!value) {
-      setReminderEnabled(false);
-      Alert.alert("Reminder disabled");
-      return;
-    }
-
-    try {
-      const result = await scheduleDailyReminder(20, 0);
-
-      if (!result?.ok) {
-        setReminderEnabled(false);
-        Alert.alert(
-          "Reminder unavailable",
-          result?.reason ||
-            "Daily reminders are not configured in this build yet."
-        );
-        return;
-      }
-
-      setReminderEnabled(true);
-      Alert.alert("Reminder set", "Daily reminder scheduled at 8:00 PM");
-    } catch (error) {
-      console.error("Daily reminder failed", error);
-      setReminderEnabled(false);
-      Alert.alert("Reminder error", "The daily reminder could not be enabled.");
-    }
-  };
 
   return (
     <ScrollView
@@ -382,21 +343,6 @@ const InsightsScreen = () => {
             </Text>
           </View>
         ))}
-      </View>
-
-      <View style={styles.panel}>
-        <View style={styles.reminderRow}>
-          <Text style={styles.reminderLabel}>Daily Reminder</Text>
-          <Switch value={reminderEnabled} onValueChange={onToggle} />
-        </View>
-
-        <View style={styles.reminderRow}>
-          <View>
-            <Text style={styles.reminderLabel}>Dark Mode</Text>
-            <Text style={styles.modeMeta}>Current: {resolvedMode}</Text>
-          </View>
-          <Switch value={resolvedMode === "dark"} onValueChange={toggleTheme} />
-        </View>
       </View>
     </ScrollView>
   );
@@ -594,30 +540,6 @@ const getStyles = (theme) =>
     breakdownValue: {
       color: theme.text,
       fontWeight: "800",
-    },
-    panel: {
-      marginTop: 16,
-      backgroundColor: theme.surface,
-      borderRadius: 24,
-      borderWidth: 1,
-      borderColor: theme.border,
-      paddingHorizontal: 18,
-      paddingBottom: 10,
-    },
-    reminderRow: {
-      marginTop: 20,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
-    reminderLabel: {
-      fontWeight: "700",
-      color: theme.text,
-    },
-    modeMeta: {
-      marginTop: 4,
-      color: theme.textSoft,
-      textTransform: "capitalize",
     },
   });
 
