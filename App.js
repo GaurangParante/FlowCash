@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { StatusBar, View, ActivityIndicator, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
+import mobileAds from "react-native-google-mobile-ads";
 import MainTabs from "./src/navigation/MainTabs";
 import { ExpenseProvider } from "./src/store/ExpenseContext";
 import { initDB, seedDefaultCategories } from "./src/database/db";
@@ -51,6 +52,10 @@ const App = () => {
   useEffect(() => {
     prepare();
   }, [prepare]);
+
+  useEffect(() => {
+    mobileAds().initialize();
+  }, []);
 
   return (
     <ThemeProvider>

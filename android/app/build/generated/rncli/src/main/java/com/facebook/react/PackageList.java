@@ -19,6 +19,8 @@ import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
 import com.reactnativevectoricons.material_design_icons.VectorIconsMaterialDesignIconsPackage;
 // react-native-gesture-handler
 import com.swmansion.gesturehandler.RNGestureHandlerPackage;
+// react-native-google-mobile-ads
+import io.invertase.googlemobileads.ReactNativeGoogleMobileAdsPackage;
 // react-native-reanimated
 import com.swmansion.reanimated.ReanimatedPackage;
 // react-native-safe-area-context
@@ -78,6 +80,7 @@ public class PackageList {
       new AsyncStoragePackage(),
       new VectorIconsMaterialDesignIconsPackage(),
       new RNGestureHandlerPackage(),
+      new ReactNativeGoogleMobileAdsPackage(),
       new ReanimatedPackage(),
       new SafeAreaContextPackage(),
       new RNScreensPackage(),

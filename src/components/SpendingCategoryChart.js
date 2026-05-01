@@ -91,19 +91,21 @@ const SpendingCategoryChart = ({ items, total }) => {
       <View style={styles.legend}>
         {segments.map((segment) => (
           <View key={segment.name} style={styles.legendRow}>
-            <View style={styles.legendNameWrap}>
-              <View
-                style={[styles.legendDot, { backgroundColor: segment.color }]}
-              />
-              <Text style={styles.legendLabel} numberOfLines={1}>
-                {segment.name}
+            <View style={styles.legendTopLine}>
+              <View style={styles.legendNameWrap}>
+                <View
+                  style={[styles.legendDot, { backgroundColor: segment.color }]}
+                />
+                <Text style={styles.legendLabel} numberOfLines={1}>
+                  {segment.name || "Others"}
+                </Text>
+              </View>
+              <Text style={styles.legendValue}>
+                {formatCurrency(segment.value)}
               </Text>
             </View>
             <Text style={styles.legendShare}>
-              {(segment.share * 100).toFixed(0)}%
-            </Text>
-            <Text style={styles.legendValue}>
-              {formatCurrency(segment.value)}
+              {(segment.share * 100).toFixed(0)}% of total spending
             </Text>
           </View>
         ))}
@@ -152,15 +154,18 @@ const getStyles = (theme, isCompact) =>
       paddingLeft: isCompact ? 0 : 12,
     },
     legendRow: {
+      paddingVertical: 8,
+    },
+    legendTopLine: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: 8,
     },
     legendNameWrap: {
       flex: 1,
       flexDirection: "row",
       alignItems: "center",
       minWidth: 0,
+      paddingRight: 10,
     },
     legendDot: {
       width: 9,
@@ -171,18 +176,16 @@ const getStyles = (theme, isCompact) =>
     legendLabel: {
       flexShrink: 1,
       color: theme.text,
-      fontSize: 12,
-      fontWeight: "600",
+      fontSize: 13,
+      fontWeight: "800",
     },
     legendShare: {
-      width: isCompact ? 44 : 38,
+      marginTop: 3,
+      marginLeft: 17,
       color: theme.textSoft,
-      fontSize: 12,
-      textAlign: "right",
-      marginRight: 10,
+      fontSize: 11,
     },
     legendValue: {
-      width: isCompact ? 86 : 74,
       color: theme.text,
       fontSize: 12,
       fontWeight: "700",

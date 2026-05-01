@@ -4,6 +4,7 @@ import { useExpenses } from "../store/ExpenseContext";
 import { useTheme } from "../theme/ThemeContext";
 import BarTrendChart from "../components/BarTrendChart";
 import SpendingCategoryChart from "../components/SpendingCategoryChart";
+import AdMobBanner from "../components/AdMobBanner";
 
 const CURRENCY_SYMBOL = "\u20B9";
 const getLocalDateKey = (value) => {
@@ -101,6 +102,8 @@ const DashboardScreen = () => {
           data={barData.datasets[0].data}
         />
       </View>
+
+      <AdMobBanner />
 
       <Text style={styles.sectionTitle}>Spending by Category</Text>
       <View style={styles.categoryCard}>

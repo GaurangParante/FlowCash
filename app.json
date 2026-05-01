@@ -1,4 +1,7 @@
 {
   "name": "FlowCash",
-  "displayName": "FlowCash"
+  "displayName": "FlowCash",
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-6738123701970067~2064800442"
+  }
 }
