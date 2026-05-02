@@ -13,6 +13,7 @@ import CategoryPicker from "../components/CategoryPicker";
 import DateField from "../components/DateField";
 import { useTheme } from "../theme/ThemeContext";
 import Icon from "@react-native-vector-icons/material-design-icons";
+import { useExpensesInterstitialAd } from "../utils/adMob";
 
 const CURRENCY_SYMBOL = "\u20B9";
 
@@ -67,6 +68,8 @@ const ExpenseItem = React.memo(({ item, theme, onEdit, onDelete }) => {
 });
 
 const ExpensesScreen = ({ navigation }) => {
+  useExpensesInterstitialAd();
+
   const { expenses, loadExpenses, categories, exportCSV, removeExpense } =
     useExpenses();
   const { theme } = useTheme();

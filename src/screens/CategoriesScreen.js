@@ -11,8 +11,11 @@ import {
 import { useExpenses } from "../store/ExpenseContext";
 import { useTheme } from "../theme/ThemeContext";
 import Icon from "@react-native-vector-icons/material-design-icons";
+import { useCategoriesRewardedAd } from "../utils/adMob";
 
 const CategoriesScreen = () => {
+  useCategoriesRewardedAd();
+
   const { categories, createCategory, editCategory, removeCategory } =
     useExpenses();
   const { theme } = useTheme();

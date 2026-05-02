@@ -1,47 +1,34 @@
-import React, { useMemo, useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
-import {
-  BannerAd,
-  BannerAdSize,
-  TestIds,
-} from "react-native-google-mobile-ads";
+import React, { useMemo } from "react";
+import { StyleSheet, View } from "react-native";
+import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
 import { useTheme } from "../theme/ThemeContext";
 
-const IOS_BANNER_AD_UNIT_ID = "";
+const BANNER_AD_UNIT_ID = "ca-app-pub-6738123701970067/7034056098";
 
-const adUnitId = __DEV__
-  ? TestIds.BANNER
-  : Platform.select({
-      android: "ca-app-pub-6738123701970067/7034056098",
-      ios: IOS_BANNER_AD_UNIT_ID,
-    });
+const logAdLoadReason = (placement, error) => {
+  if (__DEV__) {
+    console.log(
+      `${placement} ad not loaded`,
+      error?.code || "unknown-code",
+      error?.message || "No error message from AdMob"
+    );
+  }
+};
 
 const AdMobBanner = () => {
   const { theme } = useTheme();
-  const [loadError, setLoadError] = useState(null);
   const styles = useMemo(() => getStyles(theme), [theme]);
-
-  if (!adUnitId) {
-    return null;
-  }
 
   return (
     <View style={styles.container}>
       <BannerAd
-        unitId={adUnitId}
+        unitId={BANNER_AD_UNIT_ID}
         size={BannerAdSize.BANNER}
         requestOptions={{
           requestNonPersonalizedAdsOnly: true,
         }}
-        onAdLoaded={() => setLoadError(null)}
-        onAdFailedToLoad={(error) => {
-          console.warn("AdMob banner failed to load", error);
-          setLoadError(error?.message || "Ad unavailable");
-        }}
+        onAdFailedToLoad={(error) => logAdLoadReason("Banner", error)}
       />
-      {__DEV__ && loadError ? (
-        <Text style={styles.errorText}>{loadError}</Text>
-      ) : null}
     </View>
   );
 };
@@ -60,13 +47,6 @@ const getStyles = (theme) =>
       borderWidth: 1,
       borderRadius: 16,
       overflow: "hidden",
-    },
-    errorText: {
-      color: theme.textMuted,
-      fontSize: 11,
-      marginTop: 4,
-      paddingHorizontal: 12,
-      textAlign: "center",
     },
   });
 
