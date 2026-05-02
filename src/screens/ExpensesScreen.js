@@ -4,9 +4,11 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  Share,
   Pressable,
   Alert,
+  NativeModules,
+  PermissionsAndroid,
+  Platform,
 } from "react-native";
 import { useExpenses } from "../store/ExpenseContext";
 import CategoryPicker from "../components/CategoryPicker";
@@ -14,8 +16,13 @@ import DateField from "../components/DateField";
 import { useTheme } from "../theme/ThemeContext";
 import Icon from "@react-native-vector-icons/material-design-icons";
 import { useExpensesInterstitialAd } from "../utils/adMob";
+import {
+  buildExcelFileName,
+  buildExpensesExcelXml,
+} from "../utils/excelExport";
 
 const CURRENCY_SYMBOL = "\u20B9";
+const { FlowCashExport } = NativeModules;
 
 const buildLocalDateTime = (date, hourOffset = 0) => {
   const year = date.getFullYear();
@@ -70,13 +77,13 @@ const ExpenseItem = React.memo(({ item, theme, onEdit, onDelete }) => {
 const ExpensesScreen = ({ navigation }) => {
   useExpensesInterstitialAd();
 
-  const { expenses, loadExpenses, categories, exportCSV, removeExpense } =
-    useExpenses();
+  const { expenses, loadExpenses, categories, removeExpense } = useExpenses();
   const { theme } = useTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const refresh = useCallback(() => {
     const filter = {};
@@ -100,12 +107,60 @@ const ExpensesScreen = ({ navigation }) => {
     refresh();
   }, [refresh]);
 
+  const requestExportPermission = async () => {
+    if (Platform.OS !== "android" || Platform.Version >= 29) {
+      return true;
+    }
+
+    const result = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      {
+        title: "Storage permission",
+        message: "FlowCash needs storage access to save Excel exports.",
+        buttonPositive: "Allow",
+      }
+    );
+
+    return result === PermissionsAndroid.RESULTS.GRANTED;
+  };
+
   const onExport = async () => {
+    if (isExporting) {
+      return;
+    }
+
     try {
-      const csv = await exportCSV();
-      await Share.share({ message: csv, title: "Expenses CSV" });
+      if (Platform.OS !== "android" || !FlowCashExport) {
+        Alert.alert(
+          "Export unavailable",
+          "Direct Excel download is available on Android in this build."
+        );
+        return;
+      }
+
+      setIsExporting(true);
+      const hasPermission = await requestExportPermission();
+      if (!hasPermission) {
+        Alert.alert(
+          "Permission needed",
+          "Storage permission is required to save the Excel file."
+        );
+        return;
+      }
+
+      const fileName = buildExcelFileName();
+      const excelXml = buildExpensesExcelXml(expenses);
+      const path = await FlowCashExport.saveExcelFile(fileName, excelXml);
+
+      Alert.alert("Excel downloaded", `Saved to ${path}`);
     } catch (err) {
       console.error(err);
+      Alert.alert(
+        "Export failed",
+        "FlowCash could not save the Excel file. Please try again."
+      );
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -175,8 +230,14 @@ const ExpensesScreen = ({ navigation }) => {
           >
             <Text style={styles.secondaryButtonText}>Clear</Text>
           </Pressable>
-          <Pressable style={styles.primaryButton} onPress={onExport}>
-            <Text style={styles.primaryButtonText}>Export CSV</Text>
+          <Pressable
+            style={[styles.primaryButton, isExporting && styles.disabledButton]}
+            onPress={onExport}
+            disabled={isExporting}
+          >
+            <Text style={styles.primaryButtonText}>
+              {isExporting ? "Downloading..." : "Download Excel"}
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -257,6 +318,9 @@ const getStyles = (theme) =>
       alignItems: "center",
       borderRadius: 14,
       backgroundColor: theme.primaryStrong,
+    },
+    disabledButton: {
+      opacity: 0.65,
     },
     primaryButtonText: {
       color: theme.mode === "dark" ? "#04101c" : "#fff",
