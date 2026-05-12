@@ -93,9 +93,9 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.flowcash"
+    namespace "com.flowcash.finance"
     defaultConfig {
-        applicationId "com.flowcash"
+        applicationId "com.flowcash.finance"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
